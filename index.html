@@ -15,7 +15,7 @@ display:flex;justify-content:center;align-items:center;height:100vh}
 </div>
 <script>
 setInterval(()=>{
-fetch('/status').then(r=>r.json()).then(d=>{
+fetch('api/status').then(r=>r.json()).then(d=>{
 t.textContent=d.time;
 e.textContent=d.emergency?"YES":"NO";
 e.className=d.emergency?"yes":"no";
