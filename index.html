@@ -114,37 +114,57 @@ update();
 // update every second
 setInterval(update, 1000);
   
+
+/* ================= NOTIFICATION SETUP ================= */
 let lastEmergency = false;
 
-// Ask permission once
+// Request permission once
 if ("Notification" in window) {
-  if (Notification.permission !== "granted") {
-    Notification.requestPermission();
+  if (Notification.permission === "default") {
+    Notification.requestPermission().then(p => {
+      console.log("Notification permission:", p);
+    });
+  } else {
+    console.log("Notification permission already:", Notification.permission);
   }
+} else {
+  console.log("Browser does not support notifications");
 }
 
+/* ================= STATUS POLLING ================= */
 setInterval(() => {
   fetch('/api/status')
-    .then(r => r.json())
-    .then(d => {
+    .then(res => res.json())
+    .then(data => {
 
-      // Update UI (you already have this)
-      document.getElementById("t").textContent = d.time;
-      document.getElementById("e").textContent = d.emergency ? "YES" : "NO";
-      document.getElementById("e").className = d.emergency ? "yes" : "no";
-      document.getElementById("l").textContent = d.location;
+      // ---- OPTIONAL: update UI if you have it ----
+      if (document.getElementById("t"))
+        document.getElementById("t").textContent = data.time;
 
-      // 🔔 POP-UP NOTIFICATION
-      if (d.emergency && !lastEmergency) {
+      if (document.getElementById("e")) {
+        document.getElementById("e").textContent = data.emergency ? "YES" : "NO";
+        document.getElementById("e").className = data.emergency ? "yes" : "no";
+      }
+
+      if (document.getElementById("l"))
+        document.getElementById("l").textContent = data.location;
+
+      // ---- POPUP NOTIFICATION LOGIC ----
+      if (data.emergency && !lastEmergency) {
+        console.log("🚨 Emergency detected");
+
         if (Notification.permission === "granted") {
           new Notification("🚨 Emergency Alert", {
             body: "Emergency button was pressed!",
           });
+        } else {
+          console.log("Notification blocked by browser");
         }
       }
 
-      lastEmergency = d.emergency;
-    });
+      lastEmergency = data.emergency;
+    })
+    .catch(err => console.error("Fetch error:", err));
 }, 1000);
 </script>
 </body>
