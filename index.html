@@ -113,6 +113,39 @@ update();
 
 // update every second
 setInterval(update, 1000);
+  
+let lastEmergency = false;
+
+// Ask permission once
+if ("Notification" in window) {
+  if (Notification.permission !== "granted") {
+    Notification.requestPermission();
+  }
+}
+
+setInterval(() => {
+  fetch('/api/status')
+    .then(r => r.json())
+    .then(d => {
+
+      // Update UI (you already have this)
+      document.getElementById("t").textContent = d.time;
+      document.getElementById("e").textContent = d.emergency ? "YES" : "NO";
+      document.getElementById("e").className = d.emergency ? "yes" : "no";
+      document.getElementById("l").textContent = d.location;
+
+      // 🔔 POP-UP NOTIFICATION
+      if (d.emergency && !lastEmergency) {
+        if (Notification.permission === "granted") {
+          new Notification("🚨 Emergency Alert", {
+            body: "Emergency button was pressed!",
+          });
+        }
+      }
+
+      lastEmergency = d.emergency;
+    });
+}, 1000);
 </script>
 </body>
 </html>
